@@ -23,6 +23,11 @@ export const createTask = createAsyncThunk('createTask', async(task) => {
     return response.data
 })
 
+export const updateTaskAction = createAsyncThunk('updateTask',async(task)  => {
+    const response = await api.patch(`tasks/update-task/${task._id}`, task)
+    return response.data
+} )
+
 export const taskSlice = createSlice({
     name:'task',
     initialState,
@@ -38,7 +43,7 @@ export const taskSlice = createSlice({
             state.tasks = action.payload.data
         }),
         builder.addCase(getUserTasks.rejected,(state,action) => {
-            console.error('Error',action.payload.message)
+            console.error('Error',action.payload)
             state.Error = true
         }),
         builder.addCase(deleteUserTask.pending,(state,) =>{
@@ -51,7 +56,7 @@ export const taskSlice = createSlice({
         }),
         builder.addCase(deleteUserTask.rejected,(state,action) => {
             state.Error = action.payload
-            console.error('Error', action.payload.message)
+            console.error('Error', action.payload)
         }),
 
         builder.addCase(createTask.pending , (state)=> {
@@ -65,6 +70,18 @@ export const taskSlice = createSlice({
             state.loading = false
             console.error('Error', action.payload)
             state.Error = true
+        }),
+
+        builder.addCase(updateTaskAction.pending, (state ) => {
+            state.loading = true
+        }),
+        builder.addCase(updateTaskAction.fulfilled , (state,action ) => {
+            state.loading = false
+            state.tasks = action.payload.data
+        }),
+        builder.addCase(updateTaskAction.rejected , (state,action) => {
+            state.Error = action.payload
+            console.error('Error', action.payload)
         })
 
     }

@@ -4,6 +4,7 @@ import {
   createTask,
   deleteUserTask,
   getUserTasks,
+  updateTaskAction,
 } from "../features/task/taskSlice";
 
 function Home() {
@@ -15,18 +16,35 @@ function Home() {
     description: "",
   });
 
+  const [submitError, setSubmitError] = useState(false);
+  const [updatingID, setUpdatingId] = useState(null);
+  const [updatedTask, setUpdatedTask] = useState({
+    title: "",
+    description: "",
+  });
+
   useEffect(() => {
     dispatch(getUserTasks());
   }, [dispatch]);
 
   function handleInputs(e) {
     const { name, value } = e.target;
-    setTaskData(prevState => {
+    setTaskData((prevState) => {
       return {
         ...prevState,
-        [name]:value
-      }
-    })
+        [name]: value,
+      };
+    });
+  }
+
+  function onUpateChange(e) {
+    const { name, value } = e.target;
+    setUpdatedTask((prevState) => {
+      return {
+        ...prevState,
+        [name]: value,
+      };
+    });
   }
 
   function onSubmitHandler(e) {
@@ -34,21 +52,74 @@ function Home() {
     if (taskData.title.trim() !== "" && taskData.description.trim() !== "") {
       dispatch(createTask(taskData));
       setTaskData({
-        title:'',
-        description:''
-      })
+        title: "",
+        description: "",
+      });
+      setSubmitError(false);
+    } else {
+      setSubmitError(true);
     }
   }
+
   return (
     <div>
       <h1>User tasks</h1>
+      {submitError && (
+        <p
+          style={{
+            color: "red",
+            fontWeight: "bold",
+          }}
+        >
+          Please enter valid task
+        </p>
+      )}
       {tasks.map((task) => (
         <div key={task._id}>
-          <h1>{task.title}</h1>
-          <p>{task.description}</p>
-          <button onClick={() => dispatch(deleteUserTask(task._id))}>
-            Delete Task
-          </button>
+          {updatingID === task._id ? (
+            <div>
+              <input
+                name="title"
+                onChange={onUpateChange}
+                value={updatedTask.title}
+              />
+              <textarea
+                name="description"
+                onChange={onUpateChange}
+                value={updatedTask.description}
+              ></textarea>
+              <button
+                onClick={() => {
+                  setUpdatingId(null);
+                  dispatch(updateTaskAction(updatedTask));
+                }}
+              >
+                Save
+              </button>
+              <button onClick={() => setUpdatingId(null)}>Cancel</button>
+            </div>
+          ) : (
+            <div>
+              <h1>{task.title}</h1>
+              <p>{task.description}</p>
+              <button onClick={() => dispatch(deleteUserTask(task._id))}>
+                Delete Task
+              </button>
+              <button
+                onClick={() => {
+                  setUpdatingId(task._id);
+                  setUpdatedTask({
+                    _id: task._id,
+                    title: task.title,
+                    description: task.description,
+                  });
+                }}
+              >
+                Update Task
+              </button>
+              
+            </div>
+          )}
         </div>
       ))}
       <form onSubmit={onSubmitHandler}>
